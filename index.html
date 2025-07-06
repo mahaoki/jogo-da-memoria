@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jogo da Memória - Tanques</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            overflow: hidden;
+            margin: 0;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 150px);
+            grid-gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .card {
+            width: 150px;
+            height: 100px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card.flip .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+        }
+        .card-front {
+            background: #555;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jogo da Memória - Tanques</h1>
+    <div class="game-board" id="gameBoard"></div>
+
+    <script>
+        const images = ["tank_4_copy1.jpeg", "tank_6_copy1.jpeg", "tank_2_copy1.jpeg", "tank_1_copy1.jpeg", "tank_5_copy1.jpeg", "tank_3_copy1.jpeg"];
+        let cards = [];
+
+        images.forEach(src => {
+            const name = src.split("_copy")[0];
+            cards.push({name, src});
+            cards.push({name, src});
+        });
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        shuffle(cards);
+
+        const gameBoard = document.getElementById('gameBoard');
+        cards.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.classList.add('card');
+            cardDiv.dataset.name = card.name;
+
+            cardDiv.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-front"></div>
+                    <div class="card-back">
+                        <img src="${card.src}" alt="${card.name}">
+                    </div>
+                </div>
+            `;
+
+            gameBoard.appendChild(cardDiv);
+        });
+
+        function showCelebrationConfetti() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { x: 0, y: 0.6 },
+            });
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { x: 1, y: 0.6 },
+            });
+        }
+
+        let flippedCard = null;
+        let lockBoard = false;
+
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                if (lockBoard || card === flippedCard || card.classList.contains('matched')) return;
+
+                card.classList.add('flip');
+
+                if (!flippedCard) {
+                    flippedCard = card;
+                } else {
+                    if (flippedCard.dataset.name === card.dataset.name) {
+                        flippedCard.classList.add('matched');
+                        card.classList.add('matched');
+                        showCelebrationConfetti();
+                        flippedCard = null;
+                    } else {
+                        lockBoard = true;
+                        setTimeout(() => {
+                            flippedCard.classList.remove('flip');
+                            card.classList.remove('flip');
+                            flippedCard = null;
+                            lockBoard = false;
+                        }, 1000);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
